@@ -1,21 +1,26 @@
-/* eslint-disable react/no-unknown-property */
 import { useState, useRef, useEffect } from "react";
 import "./App.css";
 import Die from "./Die";
 import { nanoid } from "nanoid";
 import Confetti from "react-confetti";
+import Watch from "./Watch"; 
+
 function App() {
   const [dice, setDice] = useState(() => generateAllNewDice());
+  const [gameRunning, setGameRunning] = useState(false);
+  const [firstRollStarted, setFirstRollStarted] = useState(false); // Track first roll
   const buttonRef = useRef(null);
-  const gamewon =
+
+  const gameWon =
     dice.every((die) => die.isHeld) &&
-    dice.every((die) => dice.value === die[0].value);
+    dice.every((die) => die.value === dice[0].value);
+
   useEffect(() => {
-    if (gamewon) {
+    if (gameWon) {
       buttonRef.current.focus();
     }
-  }, [gamewon]);
-  
+  }, [gameWon]);
+
   function generateAllNewDice() {
     return new Array(10).fill(0).map(() => ({
       value: Math.ceil(Math.random() * 6),
@@ -25,17 +30,25 @@ function App() {
   }
 
   function rollDice() {
-    if (!gamewon) {
+    if (!gameWon) {
+      setGameRunning(true); // Start timer when rolling
       setDice((oldDice) =>
         oldDice.map((die) =>
           die.isHeld ? die : { ...die, value: Math.ceil(Math.random() * 6) }
         )
       );
     } else {
+      setGameRunning(false); // Stop timer on a new game
       setDice(generateAllNewDice());
     }
   }
+
   function hold(id) {
+    if (!firstRollStarted) {
+      setFirstRollStarted(true); // Start the timer on the first interaction
+      setGameRunning(true);
+    }
+
     setDice((oldDice) =>
       oldDice.map((die) =>
         die.id === id ? { ...die, isHeld: !die.isHeld } : die
@@ -53,19 +66,21 @@ function App() {
   ));
 
   return (
+    <>
+    <Watch gameRunning={gameRunning} gameWon={gameWon} /> 
     <main>
-      {gamewon && <Confetti />}
-      <div aria-live="polite" className="sr-only">
-        {gamewon && (
+      <div
+        aria-live="polite"
+        className="w-fit text-sm font-bold text-green-600"
+      >
+        {gameWon ? (
           <p>Congratulations! You won! Press New Game to start again.</p>
+        ) : (
+          ""
         )}
       </div>
-      <h1
-        className="font-size: 40px;
-    margin: 0;"
-      >
-        Tenzies
-      </h1>
+      {gameWon && <Confetti />}
+      <h1 className="text-[40px] m-0">Tenzies</h1>
       <p className="font-sans font-normal mt-0 text-center">
         Roll until all dice are the same. Click each die to freeze it at its
         current value between rolls.
@@ -78,10 +93,10 @@ function App() {
         ref={buttonRef}
         className="h-[50px] whitespace-nowrap w-auto px-[21px] py-[6px] border-none rounded-[6px] bg-[#5035FF] text-white text-[1.2rem]"
       >
-        {gamewon ? "New Game" : "Roll"}
+        {gameWon ? "New Game" : "Roll"}
       </button>
     </main>
-  );
+    </>);
 }
 
 export default App;

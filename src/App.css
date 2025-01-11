@@ -1,0 +1,19 @@
+@keyframes beep {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(15px); /* Move forward */
+  }
+  100% {
+    transform: translateX(0); /* Move back to original position */
+  }
+}
+
+.animate-beep {
+  animation: beep 0.5s ease-in-out infinite ;     /* Adjust the animation duration as needed */
+
+  background-color: lightgreen;
+
+
+}
